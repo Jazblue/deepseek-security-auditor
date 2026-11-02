@@ -1,0 +1,17 @@
+# Sensitive configuration file
+database:
+  host: localhost
+  port: 5432
+  username: admin
+  password: "db_password_123"
+
+api:
+  secret_key: "my-api-secret-key-12345"
+  token: "tok_live_abc123def456"
+
+aws:
+  access_key_id: AKIAIOSFODNN7EXAMPLE
+  secret_access_key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+github:
+  token: ghp_1234567890abcdefghijklmnopqrstuvwxyz

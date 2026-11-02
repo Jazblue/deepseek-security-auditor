@@ -1,80 +1,70 @@
 # DeepSeek Security Auditor
 
-A Python security-auditing project built with assistance from DeepSeek and tested through an independent synthetic validation suite.
+A Python static-analysis project for identifying common security risks in source code and configuration files. It checks for hardcoded credentials, SQL injection patterns, missing security headers, insecure HTTP references, and unsafe configuration.
 
-> **Project status: experimental / under active development.** This repository documents the work and findings from the initial development session. It is not a production-ready security product, and the application source code has not yet been uploaded.
+> **Project status: experimental / active development.** This is a learning and portfolio project, not a certified security product. Findings require human review and the tool must not be treated as proof that an application is secure.
 
-## What was built
+## Project stewardship and attribution
 
-The project was developed locally in Python as a multi-check security auditor. Its scanners cover:
+The initial implementation and early test suite were developed with **DeepSeek**. On 2 November 2026, **ChatGPT took over the independent code review, regression testing, security remediation, documentation and ongoing project development**. The original DeepSeek contribution is retained and acknowledged; subsequent changes are recorded in the repository history.
 
-- Hardcoded credentials and secrets
-- SQL injection patterns
-- Insecure HTTP usage
-- Missing or weak security headers
-- Unsafe application configuration and dangerous functions
+## Features
 
-The project also includes a command-line interface, reporting functionality, a deliberately vulnerable synthetic test application, and automated tests.
+- Credential detection for AWS keys, GitHub tokens, API keys and generic secrets.
+- SQL injection pattern checks, including concatenation, f-strings and formatting.
+- Checks for missing security headers and insecure HTTP references.
+- Unsafe configuration checks, including `eval`, `exec`, unsafe pickle use, debug mode and hardcoded passwords.
+- HTML reporting with severity levels and remediation guidance.
+- Directory and individual-file credential scanning.
+- Fingerprint-based deduplication and masking of credential values in findings and reports.
 
-## Development work completed with DeepSeek
+## Verified tests
 
-During the 2 November 2026 development session, DeepSeek helped:
+**ChatGPT independently ran the uploaded test suite after the fixes in this repository on 2 November 2026: 98 passed, 0 failed.** This includes the project's unit tests and its independent synthetic validation tests.
 
-1. Build the initial scanner modules and a synthetic test application.
-2. Create an automated test suite. The original 36 tests were expanded to 71.
-3. Add SHA-256 finding fingerprints to reduce duplicate findings.
-4. Add secret-masking functionality for credential findings.
-5. Improve severity handling so known example credentials can be labelled as test data rather than confirmed live secrets.
-6. Create an independent validation suite containing 15 deliberately vulnerable examples and 10 safe coding patterns.
+The validation suite uses deliberately vulnerable and safe examples. Passing these tests confirms the current expected behaviours for that test corpus only; it does not establish 100% real-world detection accuracy or production readiness.
 
-The initial independent validation reported 14 true positives out of 15, one false negative, and two false positives. The reported precision was 87.50%, recall 93.33%, and F1 score 90.32%.
+## Installation
 
-Subsequent scanner changes were reported to improve those results to 15/15 detections and zero false positives, with 98 automated tests passing. These later figures are developer-reported and still require reproducible independent confirmation.
+Python 3.8 or newer is recommended.
 
-## Further testing uncovered additional weaknesses
+```bash
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-A separate credential-focused test file was created with 13 fictional credential assignments. The focused scan reported 8 of 13 detected. It exposed several issues requiring correction:
+## Run a scan
 
-- Quoted dictionary-key assignments were missed by some credential patterns.
-- Some AWS secret-key naming and formatting variations were not detected.
-- A single-file scan returned no findings because the scanner's traversal logic expected a directory.
-- A credential masked by one scanner could still appear in plaintext through another scanner's report.
-- Duplicate findings could occur across scanners.
+From the repository root:
 
-These are open engineering issues, not resolved features. The next development milestone is to centralise masking across all scanners and reporting paths, improve credential detection, support both file and directory scanning, and validate cross-scanner deduplication.
+```bash
+python -m auditor.cli ./test_site
+python -m auditor.cli ./path/to/your/project -o security_report.html
+```
 
-## Testing approach
+Only scan code and systems you own or have explicit permission to assess. Review findings manually before taking action.
 
-The project uses two levels of testing:
+## Run tests
 
-- **Unit/regression tests** for individual scanners and reporting behaviour.
-- **Independent synthetic validation** using deliberately vulnerable and safe examples that are separate from the scanner's own unit tests.
+```bash
+pytest -q
+```
 
-Future validation should report true positives, false positives, false negatives, precision, recall, and F1 score. Test results should be reproducible from documented commands and should include the exact test corpus version.
+## Deliberately vulnerable test application
 
-## Security and responsible use
+`test_site/` and `external_test_suite/synthetic_app/` contain fictional, intentionally vulnerable examples used to exercise the scanners. They are not production applications and must not be deployed. The local `test_site/.env` file is intentionally **not included** in the repository; do not add real credentials or secrets to test fixtures.
 
-- Synthetic credentials must remain fictional and must never be replaced with live secrets.
-- Do not commit real `.env` files, API keys, access tokens, passwords, customer data, or private scan reports.
-- Run scans only against systems you own or are explicitly authorised to assess.
-- Findings are indicators for human review; a pattern match alone does not prove exploitability.
-- Do not use this experimental project as the sole security control for production systems.
+## Repository layout
 
-## Roadmap
+- `auditor/` — scanner implementation, configuration, CLI and report generator.
+- `tests/` — unit and integration tests.
+- `external_test_suite/` — independent synthetic validation corpus and tests.
+- `test_site/` — deliberately vulnerable sample application.
 
-- [ ] Centralise secret masking across every scanner, terminal output, and HTML report.
-- [ ] Improve detection of quoted dictionary keys and AWS secret assignments.
-- [ ] Support scanning a single file as well as a directory.
-- [ ] Review and reduce duplicate findings across scanners.
-- [ ] Add broader SQL parameterisation regression coverage.
-- [ ] Expand the independent corpus to at least 50 vulnerable and 50 safe examples.
-- [ ] Publish reproducible setup, usage, and test instructions.
-- [ ] Review the complete repository for secrets and sensitive data before publishing source files.
+## Responsible use
 
-## Attribution
-
-DeepSeek was used as the AI coding assistant during the initial implementation and iterative testing. The project records both its successful contributions and the defects discovered during independent validation. Human review and reproducible testing remain essential.
-
----
-
-*Development notes: 2 November 2026.*
+This project is intended for education, portfolio demonstration and authorised defensive code review. It performs pattern-based static analysis, not full penetration testing, dependency analysis, dynamic testing or a formal security audit. False positives and false negatives are possible.
